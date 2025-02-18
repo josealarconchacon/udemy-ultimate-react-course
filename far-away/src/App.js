@@ -1,107 +1,60 @@
 import { useState } from "react";
-const initialItems = [
-  { id: 1, description: "Passports", quantity: 2, packed: true },
-  { id: 2, description: "Socks", quantity: 12, packed: true },
-];
+import Logo from "./components/Logo";
+import Form from "./components/Form";
+import PackingList from "./components/PackingList";
+import Stats from "./components/Stats";
+import Modal from "./components/Modal";
+import { initialItems } from "./data";
+
 export default function App() {
   const [items, setItems] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  function handlerAddItems(item) {
+  function handleAddItems(item) {
     setItems((items) => [...items, item]);
+  }
+
+  function handleDeleteItem(id) {
+    setItems((items) => items.filter((item) => item.id !== id));
+  }
+
+  function handleToggleItem(id) {
+    setItems((items) =>
+      items.map((item) =>
+        item.id === id ? { ...item, packed: !item.packed } : item
+      )
+    );
+  }
+
+  function handleClearList() {
+    setItems([]);
+    setIsModalOpen(false);
+  }
+
+  function openModal() {
+    setIsModalOpen(true);
+  }
+
+  function closeModal() {
+    setIsModalOpen(false);
   }
 
   return (
     <div className="App">
       <Logo />
-      <Form onAddItems={handlerAddItems} />
-      <PackingList items={items} />
-
-      <Stats />
-    </div>
-  );
-}
-
-function Logo() {
-  return (
-    <div>
-      <h1> 🏖️ Far Away 🛫</h1>
-    </div>
-  );
-}
-function Form({ onAddItems }) {
-  const [description, setDescription] = useState("");
-  const [quantity, setQuantity] = useState(1);
-
-  // add event handler to submit the form
-  function handleSubmit(event) {
-    event.preventDefault();
-
-    if (!description) return;
-
-    const newItem = {
-      id: Date.now(),
-      description,
-      quantity,
-      packed: false,
-    };
-    console.log(newItem);
-    onAddItems(newItem);
-    setDescription("");
-    setQuantity(1);
-  }
-
-  return (
-    <form className="add-form" onSubmit={handleSubmit}>
-      <h3>What do you need for your trip 😀 ?</h3>
-      <select
-        value={quantity}
-        onChange={(event) => setQuantity(event.target.value)}
-      >
-        {Array.from({ length: 20 }, (_, index) => index + 1).map((num) => (
-          <option value={num} key={num}>
-            {num}
-          </option>
-        ))}
-      </select>
-      <input
-        type="text"
-        placeholder="Items..."
-        value={description}
-        onChange={(event) => setDescription(event.target.value)}
+      <Form onAddItems={handleAddItems} />
+      <PackingList
+        items={items}
+        onDeleteItem={handleDeleteItem}
+        onToggleItems={handleToggleItem}
+        onClearList={openModal}
       />
-      <button>Add</button>
-    </form>
-  );
-}
-function PackingList({ items }) {
-  return (
-    <div className="list">
-      <ul>
-        {items.map((item) => (
-          <Item item={item} key={item.id} />
-        ))}
-      </ul>
+      <Stats items={items} />
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onConfirm={handleClearList}
+      />{" "}
     </div>
-  );
-}
-
-function Item({ item }) {
-  return (
-    <li>
-      <span style={item.packed ? { textDecoration: "line-through" } : {}}>
-        {item.quantity} {item.description}
-      </span>
-      <button>❌</button>
-    </li>
-  );
-}
-function Stats() {
-  return (
-    <footer className="stats">
-      <em>
-        {" "}
-        🎒You have x items on your list, and you are already packed x (%)
-      </em>
-    </footer>
   );
 }
